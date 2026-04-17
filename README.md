@@ -17,65 +17,52 @@ demonstrate the adaptive capabilities of the approach through a dynamic reaching
 selectively activates only the necessary modules to reach a target position, thereby reducing computational
 overhead and enabling efficient and precise control.
 
-<img src="https://github.com/nilay121/Continual-learning-for-multimodal-data-fusion-of-a-soft-gripper/blob/main/stapler_signal_train_small.png" height="300px" width="1000px">
-
 ## Install the dependencies in a virtual environment
 
-- Create a virtual environment (Python version 3.8.10) 
+- Create a virtual environment (Python version 3.10.12) or use uv 
   
   ```bash
-  python3 -m venv Multimodal_cl
+  python3 -m venv smpl_venv
   ```
 
 - Activate the virtual environment
   ```bash
-  . Multimodal_cl/bin/activate
+  . smpl_venv/bin/activate
   
 - Install the dependencies
 
   ```bash
-  pip3 install -r requirements.txt
+  pip3 install -r smpl_requirements.txt
   ```
-## Steps to follow
-- Put the gripper dataset in the "dataset" folder
-- Run the "dataset_vidToImage.py" file to extract train test images from video frame
-- Run the "unsupervised_dataset.py" file to generate the unlabeled data for SSL
-- Put the pre-trained feature extractors in the "pre_trained_models" folder
-
-## Ros implementation
-- Install ROS1 (Noetic Ninjemys distribution) on Ubuntu 20.04.
-- Follow the steps provided in the "ros_instruction" file to create the ROS package.
-- Copy paste the python scripts for publisher and subscriber nodes alongwith the pre-trained feature extractor and the saved matrices to the dedicated folders.
-
-## Different combinations
-- Intra layer feature representation
+## Steps to follow Exp1S experiment
+- Generate the motor babbling data using the simulator https://github.com/zixichen007115/23ZCd or custom pyelastica simulator https://docs.cosseratrods.org/en/latest/api/simulator.html and put it in the designated folder.
+- Train the forward model on the babbling data using the scripts:
+  ```bash
+  python3 main.py --mode train --n_seg N --use_orien true
   ```
-  python3 main.py --enable_ilfr True --enable_ssl False --ssl_type None 
+- Once forward model has been trained, put it in the designated folder, freeze it and train the inverse model:
+  ```bash
+  python3 main_open_loop.py --mode train --incremental_training yes --incremental_test yes --train_total_segments N
   ```
-
-- Semi Supervised learning
-  - Unique class case
-    ```
-    python3 main.py --enable_ilfr True --enable_ssl False --ssl_type unique
-    ```
-  - Random class case
-    ```
-    python3 main.py --enable_ilfr True --enable_ssl True --ssl_type None 
-    ```
-
-- Intra layer feature representation
+- After training the inverse model for different MSR configurations, it can be evaluated using:
+  ```bash
+  python3 main_open_loop.py --mode test --test_total_segments N --shape_type babbling
   ```
-  python3 main.py --enable_ilfr True --enable_ssl True --ssl_type random 
+## Steps to follow Exp2S and Exp2R experiment
+- Generate the motor babbling data using the simulator
+- Train the forward model on the babbling data using the scripts:
+  ```bash
+  python3 main.py --mode train --n_seg N --use_orien true
+  ```
+- Once forward model has been trained, put it in the designated folder, freeze it and train the inverse model (open loop/closed loop):
+  ```bash
+  python3 main_closed_loop.py --mode train --n_seg N --use_orien true
+  ```
+- After training the inverse model, evaluate it for different trajectories:
+  ```bash
+  python3 main_closed_loop.py --mode test --n_seg N --shape_type babbling
   ```
   
 ## To cite the paper
   ```bash
-@article{kushawaha2024continual,
-  title={Continual learning for multimodal data fusion of a soft gripper},
-  author={Kushawaha, Nilay and Falotico, Egidio},
-  journal={Advanced Robotics Research},
-  pages={202500126},
-  year={2024},
-  publisher={Wiley Online Library}
-}
   ```
